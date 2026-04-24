@@ -3,6 +3,7 @@ import Link from "next/link";
 import { siteConfig } from "@/lib/site-config";
 
 const footerLinks = [
+  { href: "/track-order", label: "Track Order" },
   { href: "/shipping-policy", label: "Shipping Policy" },
   { href: "/refund-policy", label: "Refund Policy" },
   { href: "/privacy", label: "Privacy Policy" },

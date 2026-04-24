@@ -6,6 +6,7 @@ import { trackEvent } from "@/lib/tracking";
 
 type PurchaseSummary = {
   sessionId: string;
+  orderId: string;
   amountTotal: number;
   currency: string;
   itemName: string;
@@ -69,9 +70,14 @@ export function SuccessTracker({ sessionId }: { sessionId?: string }) {
   }
 
   return (
-    <p className="status-meta">
-      Tracked purchase: {summary.itemName} for {(summary.amountTotal / 100).toFixed(2)}{" "}
-      {summary.currency.toUpperCase()}.
-    </p>
+    <div className="status-meta">
+      <p>
+        Tracked purchase: {summary.itemName} for {(summary.amountTotal / 100).toFixed(2)}{" "}
+        {summary.currency.toUpperCase()}.
+      </p>
+      <p>
+        Order number: <strong>{summary.orderId}</strong>
+      </p>
+    </div>
   );
 }

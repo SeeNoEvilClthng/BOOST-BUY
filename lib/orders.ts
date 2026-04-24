@@ -136,6 +136,35 @@ function insertOrReplaceOrder(db: DatabaseSync, order: OrderRecord) {
   );
 }
 
+function mapOrderRow(row: Record<string, string | number>): OrderRecord {
+  return {
+    id: String(row.id),
+    checkoutSessionId: String(row.checkout_session_id),
+    paymentIntentId: String(row.payment_intent_id),
+    customerName: String(row.customer_name),
+    customerEmail: String(row.customer_email),
+    customerPhone: String(row.customer_phone),
+    shippingName: String(row.shipping_name),
+    addressLine1: String(row.address_line_1),
+    addressLine2: String(row.address_line_2),
+    city: String(row.city),
+    state: String(row.state_region),
+    postalCode: String(row.postal_code),
+    country: String(row.country),
+    notes: String(row.notes),
+    items: JSON.parse(String(row.items_json)) as OrderItem[],
+    subtotalAmount: Number(row.subtotal_amount),
+    supplierCostAmount: Number(row.supplier_cost_amount),
+    estimatedProfitAmount: Number(row.estimated_profit_amount),
+    paymentStatus: String(row.payment_status),
+    fulfillmentStatus: String(row.fulfillment_status),
+    supplierName: String(row.supplier_name),
+    supplierOrderId: String(row.supplier_order_id),
+    supplierResponse: String(row.supplier_response),
+    paidAt: String(row.paid_at),
+  };
+}
+
 export function ensureOrderDatabaseForRuntime() {
   const db = openDatabase();
   db.close();
@@ -180,32 +209,44 @@ export async function readOrderRecords() {
   `).all() as Array<Record<string, string | number>>;
   db.close();
 
-  return rows.map((row) => ({
-    id: String(row.id),
-    checkoutSessionId: String(row.checkout_session_id),
-    paymentIntentId: String(row.payment_intent_id),
-    customerName: String(row.customer_name),
-    customerEmail: String(row.customer_email),
-    customerPhone: String(row.customer_phone),
-    shippingName: String(row.shipping_name),
-    addressLine1: String(row.address_line_1),
-    addressLine2: String(row.address_line_2),
-    city: String(row.city),
-    state: String(row.state_region),
-    postalCode: String(row.postal_code),
-    country: String(row.country),
-    notes: String(row.notes),
-    items: JSON.parse(String(row.items_json)) as OrderItem[],
-    subtotalAmount: Number(row.subtotal_amount),
-    supplierCostAmount: Number(row.supplier_cost_amount),
-    estimatedProfitAmount: Number(row.estimated_profit_amount),
-    paymentStatus: String(row.payment_status),
-    fulfillmentStatus: String(row.fulfillment_status),
-    supplierName: String(row.supplier_name),
-    supplierOrderId: String(row.supplier_order_id),
-    supplierResponse: String(row.supplier_response),
-    paidAt: String(row.paid_at),
-  }));
+  return rows.map(mapOrderRow);
+}
+
+export async function readOrderByLookup(orderId: string, email: string) {
+  const db = openDatabase();
+  const row = db.prepare(`
+    SELECT
+      id,
+      checkout_session_id,
+      payment_intent_id,
+      customer_name,
+      customer_email,
+      customer_phone,
+      shipping_name,
+      address_line_1,
+      address_line_2,
+      city,
+      state_region,
+      postal_code,
+      country,
+      notes,
+      items_json,
+      subtotal_amount,
+      supplier_cost_amount,
+      estimated_profit_amount,
+      payment_status,
+      fulfillment_status,
+      supplier_name,
+      supplier_order_id,
+      supplier_response,
+      paid_at
+    FROM orders
+    WHERE id = ? AND LOWER(customer_email) = LOWER(?)
+    LIMIT 1
+  `).get(orderId, email) as Record<string, string | number> | undefined;
+  db.close();
+
+  return row ? mapOrderRow(row) : null;
 }
 
 export function createOrderFromSession(

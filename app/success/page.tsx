@@ -20,9 +20,14 @@ export default async function SuccessPage({
           payment.
         </p>
         <SuccessTracker sessionId={sessionId} />
-        <Link className="primary-button" href="/">
-          Return to storefront
-        </Link>
+        <div className="hero-actions">
+          <Link className="primary-button" href="/">
+            Return to storefront
+          </Link>
+          <Link className="secondary-button" href="/track-order">
+            Track my order
+          </Link>
+        </div>
       </div>
     </main>
   );

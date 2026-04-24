@@ -34,6 +34,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       sessionId: session.id,
+      orderId: session.client_reference_id ?? session.id,
       amountTotal: session.amount_total ?? 0,
       currency: session.currency ?? "usd",
       itemName: items[0]?.name ?? "Order",
