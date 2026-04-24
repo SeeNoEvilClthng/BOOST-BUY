@@ -1,4 +1,5 @@
 import type { OrderRecord } from "@/lib/orders";
+import type { RecoveryRecord } from "@/lib/recovery";
 import { formatCurrency } from "@/lib/catalog";
 
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -64,6 +65,31 @@ async function sendEmail(to: string, subject: string, html: string) {
   });
 }
 
+function buildRecoveryEmail(record: RecoveryRecord) {
+  const firstItem = record.items[0];
+  const itemSummary = record.items
+    .map((item) => `${item.name} x${item.quantity}`)
+    .join(", ");
+
+  return {
+    subject: `Complete your ${firstItem?.name ?? "BOOST BUY"} order`,
+    html: `
+      <div style="font-family:Arial,Helvetica,sans-serif;color:#111827;line-height:1.6">
+        <h1 style="margin-bottom:12px;">Your cart is still waiting</h1>
+        <p>Hi ${record.customerName || "there"},</p>
+        <p>You started checkout but did not finish your order.</p>
+        <p><strong>Cart:</strong> ${itemSummary}</p>
+        <p><strong>Total:</strong> ${formatCurrency(record.subtotalAmount)}</p>
+        <p>
+          You can jump straight back into checkout here:
+          <a href="${record.recoveryUrl}" style="color:#304778;font-weight:700"> complete my order</a>
+        </p>
+        <p>If you have questions, just reply to this email and support can help.</p>
+      </div>
+    `,
+  };
+}
+
 export async function sendOrderNotifications(order: OrderRecord) {
   const customerEmail = buildCustomerEmail(order);
   await sendEmail(order.customerEmail, customerEmail.subject, customerEmail.html);
@@ -76,4 +102,18 @@ export async function sendOrderNotifications(order: OrderRecord) {
       businessEmail.html,
     );
   }
+}
+
+export async function sendRecoveryNotification(record: RecoveryRecord) {
+  if (!resendApiKey || !notificationFromEmail || !record.customerEmail) {
+    return false;
+  }
+
+  const recoveryEmail = buildRecoveryEmail(record);
+  await sendEmail(
+    record.customerEmail,
+    recoveryEmail.subject,
+    recoveryEmail.html,
+  );
+  return true;
 }

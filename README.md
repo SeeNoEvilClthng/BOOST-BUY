@@ -11,6 +11,7 @@ Conversion-focused dropshipping starter built with Next.js and Stripe.
 - admin dashboard at `/admin/orders`
 - abandoned cart recovery dashboard at `/admin/recovery`
 - optional customer and business email notifications via Resend
+- one-click abandoned cart recovery email sending from the admin dashboard
 - optional automatic supplier order submission through a generic supplier API
 - optional analytics hooks for GA4, Meta Pixel, and TikTok Pixel
 - trust pages for shipping, refunds, privacy, and contact
@@ -84,6 +85,7 @@ These are injected site-wide from the shared layout.
 
 - Visit `/admin/orders` to review paid orders.
 - Visit `/admin/recovery` to inspect open and completed checkout attempts.
+- Use the recovery dashboard to open saved Stripe checkout links and send recovery emails when Resend is configured.
 - Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` to protect the admin route with basic auth.
 
 ## Important note

@@ -27,6 +27,8 @@ export type RecoveryRecord = {
   createdAt: string;
   completedAt: string;
   recoveredOrderId: string;
+  lastRecoveryEmailSentAt: string;
+  recoveryEmailCount: number;
 };
 
 const dataDir = path.join(process.cwd(), "data");
@@ -51,11 +53,27 @@ function openDatabase() {
       expires_at TEXT NOT NULL,
       created_at TEXT NOT NULL,
       completed_at TEXT NOT NULL,
-      recovered_order_id TEXT NOT NULL
+      recovered_order_id TEXT NOT NULL,
+      last_recovery_email_sent_at TEXT NOT NULL DEFAULT '',
+      recovery_email_count INTEGER NOT NULL DEFAULT 0
     )
   `);
+  ensureColumn(db, "last_recovery_email_sent_at", "TEXT NOT NULL DEFAULT ''");
+  ensureColumn(db, "recovery_email_count", "INTEGER NOT NULL DEFAULT 0");
 
   return db;
+}
+
+function ensureColumn(db: DatabaseSync, columnName: string, definition: string) {
+  const columns = db.prepare("PRAGMA table_info(recovery_carts)").all() as Array<{
+    name: string;
+  }>;
+
+  if (columns.some((column) => column.name === columnName)) {
+    return;
+  }
+
+  db.exec(`ALTER TABLE recovery_carts ADD COLUMN ${columnName} ${definition}`);
 }
 
 function mapRow(row: Record<string, string | number>): RecoveryRecord {
@@ -74,6 +92,8 @@ function mapRow(row: Record<string, string | number>): RecoveryRecord {
     createdAt: String(row.created_at),
     completedAt: String(row.completed_at),
     recoveredOrderId: String(row.recovered_order_id),
+    lastRecoveryEmailSentAt: String(row.last_recovery_email_sent_at ?? ""),
+    recoveryEmailCount: Number(row.recovery_email_count ?? 0),
   };
 }
 
@@ -99,9 +119,11 @@ export async function upsertRecoveryRecord(record: RecoveryRecord) {
       expires_at,
       created_at,
       completed_at,
-      recovered_order_id
+      recovered_order_id,
+      last_recovery_email_sent_at,
+      recovery_email_count
     ) VALUES (
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )
   `).run(
     record.id,
@@ -118,6 +140,8 @@ export async function upsertRecoveryRecord(record: RecoveryRecord) {
     record.createdAt,
     record.completedAt,
     record.recoveredOrderId,
+    record.lastRecoveryEmailSentAt,
+    record.recoveryEmailCount,
   );
   db.close();
 }
@@ -139,7 +163,9 @@ export async function readRecoveryRecords() {
       expires_at,
       created_at,
       completed_at,
-      recovered_order_id
+      recovered_order_id,
+      last_recovery_email_sent_at,
+      recovery_email_count
     FROM recovery_carts
     ORDER BY created_at DESC
   `).all() as Array<Record<string, string | number>>;
@@ -173,4 +199,44 @@ export async function markRecoveryCompleted(input: {
     WHERE checkout_session_id = ?
   `).run(new Date().toISOString(), input.recoveredOrderId, input.checkoutSessionId);
   db.close();
+}
+
+export async function markRecoveryEmailSent(checkoutSessionId: string) {
+  const db = openDatabase();
+  db.prepare(`
+    UPDATE recovery_carts
+    SET
+      last_recovery_email_sent_at = ?,
+      recovery_email_count = recovery_email_count + 1
+    WHERE checkout_session_id = ?
+  `).run(new Date().toISOString(), checkoutSessionId);
+  db.close();
+}
+
+export async function readRecoveryRecordBySessionId(checkoutSessionId: string) {
+  const db = openDatabase();
+  const row = db.prepare(`
+    SELECT
+      id,
+      checkout_session_id,
+      customer_name,
+      customer_email,
+      customer_phone,
+      notes,
+      items_json,
+      subtotal_amount,
+      status,
+      recovery_url,
+      expires_at,
+      created_at,
+      completed_at,
+      recovered_order_id,
+      last_recovery_email_sent_at,
+      recovery_email_count
+    FROM recovery_carts
+    WHERE checkout_session_id = ?
+  `).get(checkoutSessionId) as Record<string, string | number> | undefined;
+  db.close();
+
+  return row ? mapRow(row) : null;
 }

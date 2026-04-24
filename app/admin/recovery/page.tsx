@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { RecoveryActions } from "@/components/recovery-actions";
 import { formatCurrency } from "@/lib/catalog";
 import { readRecoveryRecords } from "@/lib/recovery";
 
@@ -95,20 +96,18 @@ export default async function AdminRecoveryPage() {
                           ? `Recovered order: ${record.recoveredOrderId || "linked"}`
                           : `Expires: ${formatDate(record.expiresAt)}`}
                       </span>
+                      <span>
+                        {record.recoveryEmailCount
+                          ? `Emails sent: ${record.recoveryEmailCount} (${formatDate(record.lastRecoveryEmailSentAt)})`
+                          : "No recovery emails sent yet"}
+                      </span>
                     </td>
                     <td>
-                      {record.recoveryUrl && record.status === "open" ? (
-                        <a
-                          className="secondary-button admin-link-button"
-                          href={record.recoveryUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Open cart
-                        </a>
-                      ) : (
-                        <span>No active recovery link</span>
-                      )}
+                      <RecoveryActions
+                        checkoutSessionId={record.checkoutSessionId}
+                        recoveryUrl={record.recoveryUrl}
+                        disabled={record.status !== "open"}
+                      />
                     </td>
                     <td>{formatDate(record.createdAt)}</td>
                   </tr>

@@ -98,6 +98,8 @@ export async function POST(request: Request) {
       createdAt: new Date().toISOString(),
       completedAt: "",
       recoveredOrderId: "",
+      lastRecoveryEmailSentAt: "",
+      recoveryEmailCount: 0,
     });
 
     return NextResponse.json({ sessionId: session.id });
