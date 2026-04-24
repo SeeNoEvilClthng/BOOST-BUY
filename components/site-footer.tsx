@@ -17,9 +17,9 @@ export function SiteFooter() {
           <p className="section-kicker">Support</p>
           <h2>{siteConfig.brandName}</h2>
           <p className="footer-copy">
-            Built to sell one clear offer well, with customer support and tracked
-            checkout flows that help the brand feel legitimate.
+            {siteConfig.aboutBlurb}
           </p>
+          <p className="footer-note">{siteConfig.founderNote}</p>
         </div>
 
         <div className="footer-column">

@@ -15,6 +15,7 @@ Conversion-focused dropshipping starter built with Next.js and Stripe.
 - optional automatic supplier order submission through a generic supplier API
 - optional analytics hooks for GA4, Meta Pixel, and TikTok Pixel
 - trust pages for shipping, refunds, privacy, and contact
+- reusable branded SVG product media and social preview assets in `public/`
 
 ## Local setup
 

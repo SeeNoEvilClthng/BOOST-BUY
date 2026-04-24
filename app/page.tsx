@@ -1,4 +1,5 @@
 import { BrandMark } from "@/components/brand-mark";
+import { ProductMedia } from "@/components/product-media";
 import { Storefront } from "@/components/storefront";
 import {
   faqItems,
@@ -10,6 +11,7 @@ import {
   socialProof,
   trustBar,
 } from "@/lib/catalog";
+import { siteConfig } from "@/lib/site-config";
 
 export default function Home() {
   return (
@@ -28,6 +30,7 @@ export default function Home() {
               <div>
                 <p className="eyebrow">Wellness best seller funnel</p>
                 <h1>BOOST BUY</h1>
+                <p className="brand-subtitle">{siteConfig.brandTagline}</p>
               </div>
             </div>
             <a className="secondary-button" href="/admin/orders">
@@ -183,6 +186,12 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="content-section">
+        <div className="shell">
+          <ProductMedia />
+        </div>
+      </section>
+
       <section className="content-section accent-section" id="store">
         <div className="shell">
           <div className="section-heading compact">
@@ -228,7 +237,7 @@ export default function Home() {
             <h2>Now the store sells like a focused offer instead of a placeholder.</h2>
             <p>
               The next real step is swapping in your actual brand assets, real
-              reviews, tracking pixels, and supplier credentials.
+              reviews, domain, tracking pixels, and supplier credentials.
             </p>
           </div>
           <div className="cta-links">
